@@ -1,5 +1,5 @@
-function svmtoy(label_matrix, instance_matrix, options, contour_level)
-%% svmtoy(label_matrix, instance_matrix, options, contour_level)
+function svmtoy2(label_matrix, instance_matrix, options, contour_level)
+%% svmtoy2(label_matrix, instance_matrix, options, contour_level)
 %% label_matrix: N by 1, has to be two-class
 %% instance_matrix: N by 2
 %% options: default '',
@@ -8,6 +8,7 @@ function svmtoy(label_matrix, instance_matrix, options, contour_level)
 %%                change to [-1 0 1] for showing the +/- 1 margin.
 %%
 %% svmtoy shows the two-class classification boundary of the 2-D data
+%% based on libsvm-mat-2.8
 %%
 %% Hsuan-Tien Lin, htlin at caltech.edu, 2006/04/07
 
@@ -52,11 +53,22 @@ if nclass ~= 2 || svmtype >= 2
   return
 end
 
-minX = min(instance_matrix(:, 1)); maxX = max(instance_matrix(:, 1));
-minY = min(instance_matrix(:, 2)); maxY = max(instance_matrix(:, 2));
-[bigX, bigY] = meshgrid(linspace(minX, maxX), linspace(minX, maxX));
+minX = min(instance_matrix(:, 1));
+maxX = max(instance_matrix(:, 1));
+minY = min(instance_matrix(:, 2));
+maxY = max(instance_matrix(:, 2));
 
-model.Parameters(1) = 3; % the trick to get the decision values
+gridX = (maxX - minX) ./ 100;
+gridY = (maxY - minY) ./ 100;
+
+minX = minX - 10 * gridX;
+maxX = maxX + 10 * gridX;
+minY = minY - 10 * gridY;
+maxY = maxY + 10 * gridY;
+
+[bigX, bigY] = meshgrid(minX:gridX:maxX, minY:gridY:maxY);
+
+mdl.Parameters(1) = 3; % the trick to get the decision values
 ntest=size(bigX, 1) * size(bigX, 2);
 instance_test=[reshape(bigX, ntest, 1), reshape(bigY, ntest, 1)];
 label_test = zeros(size(instance_test, 1), 1);
@@ -75,6 +87,6 @@ neg = find(~ispos);
 plot(instance_matrix(pos, 1), instance_matrix(pos, 2), 'o');
 plot(instance_matrix(neg, 1), instance_matrix(neg, 2), 'x');
 
-contour(bigX, bigY, bigZ, contour_level, 'LineWidth', 2); % '-r'
+contour(bigX, bigY, bigZ, contour_level, 'LineWidth', 2); % , '-r', 'LineWidth',2
 
 title(options);
